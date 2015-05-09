@@ -36,6 +36,6 @@ def top_k_words(lang, k):
 		return None
 
 
-# DISTR = uniform
-en_vecs_unif = pickle.load(open("hp1_vecs_en_unif.p", "rb"))
-fr_vecs_unif = pickle.load(open("hp1_vecs_fr_unif.p", "rb"))
+# DISTR = uniform, w = 2
+en_vecs_unif = pickle.load(open("hp1_vecs_en_unif2.p", "rb"))
+fr_vecs_unif = pickle.load(open("hp1_vecs_fr_unif2.p", "rb"))
