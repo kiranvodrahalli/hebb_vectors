@@ -2,6 +2,7 @@ import pickle
 import neural_net as nn
 import numpy as np
 from numpy.linalg import norm
+from scipy.signal import get_window
 import math
 
 
@@ -28,19 +29,19 @@ def skew_right(w):
 	return v/norm(v)
 # bimodal at ends -> THIS IS DEPENDENT ON W (distance how far away from center is important?)
 def bimodal(w):
-	v = np.ones(2*w + 1)
-	for i in range(1, len(v)/2 + 1 + 1):
-		v[i-1] = (1./i)*v[i-1]
-	for i in range(len(v)/2 + 1 + 1, len(v) + 1):
-		v[i-1] = (i - (1 + len(v)/2))*v[i-1]
-	return v/norm(v)
-# unimodal (basically hump in the middle)
+	v = get_window(('gaussian', 1.5), 2*w + 1)
+	left = v[(2*w + 1)/2:]
+	right = v[1:(1 + (2*w + 1)/2)]
+	v2 = np.ones(2*w + 1)
+	for i in range(0, len(left)):
+		v2[i] = left[i]
+	for j in range(0, len(right)):
+		v2[i] = right[j]
+		i += 1
+	return v2/norm(v2)
+# unimodal (gaussian)
 def unimodal(w):
-	v = np.ones(2*w + 1)
-	for i in range(1, len(v)/2 + 1 + 1):
-		v[i-1] = i*v[i-1]
-	for i in range(len(v)/2 + 1 + 1, len(v) + 1):
-		v[i-1] = (1./(i - (1 + len(v)/2)))*v[i-1]
+	v = get_window(('gaussian', 1.5), 2*w + 1)
 	return v/norm(v)
 #--------------NONLINEARITIES--------------#
 def sigmoid(z):
