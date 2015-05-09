@@ -106,37 +106,39 @@ def test_fr():
 	fr_vectors = word_vectors(hp1_wordset_fr, hp1_text_fr, unif, 2)
 	return fr_vectors
 
+
+# DO NOT FORGET TO DO A GIT PULL BEFORE GIT PUSHING!!!!
 # english, uniform 3, 4, bimodal 2, 3, 4
-# should take 12 hours - THIS IS VISIONGPU
+# should take 12 hours - THIS IS THIS COMPUTER
 def vectors_comp1():
 	hp1_wordset_en = pickle.load(open("hp1_wordset_en.p", "rb"))
 	hp1_text_en = pickle.load(open("hp1_text_en.p", "rb"))	
 	V_en = len(hp1_wordset_en) # vocab size
 	print("Loaded the English version of Book 1. Vocabulary size: %d\n" % V_en)
 	en_vectors3unif = word_vectors(hp1_wordset_en, hp1_text_en, unif, 3)
-	pickle.dump(en_vectors3unif, open("hp1_vecs_en_unif3.p", "rb"))
+	pickle.dump(en_vectors3unif, open("hp1_vecs_en_unif3.p", "wb"))
 	en_vectors4unif = word_vectors(hp1_wordset_en, hp1_text_en, unif, 4)
-	pickle.dump(en_vectors4unif, open("hp1_vecs_en_unif4.p", "rb"))
+	pickle.dump(en_vectors4unif, open("hp1_vecs_en_unif4.p", "wb"))
 	en_vectors3bi = word_vectors(hp1_wordset_en, hp1_text_en, bimodal, 3)
-	pickle.dump(en_vectors3bi, open("hp1_vecs_en_bi3.p", "rb"))
+	pickle.dump(en_vectors3bi, open("hp1_vecs_en_bi3.p", "wb"))
 	en_vectors4bi = word_vectors(hp1_wordset_en, hp1_text_en, bimodal, 4)
-	pickle.dump(en_vectors4bi, open("hp1_vecs_en_bi4.p", "rb"))
+	pickle.dump(en_vectors4bi, open("hp1_vecs_en_bi4.p", "wb"))
 
 # french, uniform 3, 4, bimodal 2, 3, 4
-# should take 12 hours - THIS IS THIS COMPUTER
+# should take 12 hours - THIS IS VISIONGPU
 def vectors_comp2():
 	hp1_wordset_fr = pickle.load(open("hp1_wordset_fr.p", "rb"))
 	hp1_text_fr = pickle.load(open("hp1_text_fr.p", "rb"))	
 	V_fr = len(hp1_wordset_fr) # vocab size
 	print("Loaded the French version of Book 1. Vocabulary size: %d\n" % V_fr)
 	fr_vectors3unif = word_vectors(hp1_wordset_fr, hp1_text_fr, unif, 3)
-	pickle.dump(fr_vectors3unif, open("hp1_vecs_fr_unif3.p", "rb"))
+	pickle.dump(fr_vectors3unif, open("hp1_vecs_fr_unif3.p", "wb"))
 	fr_vectors4unif = word_vectors(hp1_wordset_fr, hp1_text_fr, unif, 4)
-	pickle.dump(fr_vectors4unif, open("hp1_vecs_fr_unif4.p", "rb"))
+	pickle.dump(fr_vectors4unif, open("hp1_vecs_fr_unif4.p", "wb"))
 	fr_vectors3bi = word_vectors(hp1_wordset_fr, hp1_text_fr, bimodal, 3)
-	pickle.dump(fr_vectors3bi, open("hp1_vecs_fr_bi3.p", "rb"))
+	pickle.dump(fr_vectors3bi, open("hp1_vecs_fr_bi3.p", "wb"))
 	fr_vectors4bi = word_vectors(hp1_wordset_fr, hp1_text_fr, bimodal, 4)
-	pickle.dump(fr_vectors4bi, open("hp1_vecs_fr_bi4.p", "rb"))
+	pickle.dump(fr_vectors4bi, open("hp1_vecs_fr_bi4.p", "wb"))
 
 # english, unimodal 2, 3, 4
 # should take 12 hours - THIS IS NOBEL.PRINCETON.EDU
@@ -146,13 +148,13 @@ def vectors_comp3():
 	V_en = len(hp1_wordset_en) # vocab size
 	print("Loaded the English version of Book 1. Vocabulary size: %d\n" % V_en)
 	en_vectors2uni = word_vectors(hp1_wordset_en, hp1_text_en, unimodal, 2)
-	pickle.dump(en_vectors2uni, open("hp1_vecs_en_uni2.p", "rb"))
+	pickle.dump(en_vectors2uni, open("hp1_vecs_en_uni2.p", "wb"))
 	en_vectors3uni = word_vectors(hp1_wordset_en, hp1_text_en, unimodal, 3)
-	pickle.dump(en_vectors3uni, open("hp1_vecs_en_uni3.p", "rb"))
+	pickle.dump(en_vectors3uni, open("hp1_vecs_en_uni3.p", "wb"))
 	en_vectors4uni = word_vectors(hp1_wordset_en, hp1_text_en, unimodal, 4)
-	pickle.dump(en_vectors4uni, open("hp1_vecs_en_uni4.p", "rb"))
+	pickle.dump(en_vectors4uni, open("hp1_vecs_en_uni4.p", "wb"))
 	en_vectors2bi = word_vectors(hp1_wordset_en, hp1_text_en, bimodal, 2)
-	pickle.dump(en_vectors2bi, open("hp1_vecs_en_bi2.p", "rb"))
+	pickle.dump(en_vectors2bi, open("hp1_vecs_en_bi2.p", "wb"))
 
 # french, unimodal 2, 3, 4
 # should take 12 hours THIS IS OTHER LAPTOP
@@ -162,10 +164,10 @@ def vectors_comp4():
 	V_fr = len(hp1_wordset_fr) # vocab size
 	print("Loaded the French version of Book 1. Vocabulary size: %d\n" % V_fr)
 	fr_vectors2uni = word_vectors(hp1_wordset_fr, hp1_text_fr, unimodal, 2)
-	pickle.dump(fr_vectors2uni, open("hp1_vecs_fr_uni2.p", "rb"))
+	pickle.dump(fr_vectors2uni, open("hp1_vecs_fr_uni2.p", "wb"))
 	fr_vectors3uni = word_vectors(hp1_wordset_fr, hp1_text_fr, unimodal, 3)
-	pickle.dump(fr_vectors3uni, open("hp1_vecs_fr_uni3.p", "rb"))
+	pickle.dump(fr_vectors3uni, open("hp1_vecs_fr_uni3.p", "wb"))
 	fr_vectors4uni = word_vectors(hp1_wordset_fr, hp1_text_fr, unimodal, 4)
-	pickle.dump(fr_vectors4uni, open("hp1_vecs_fr_uni4.p", "rb"))
+	pickle.dump(fr_vectors4uni, open("hp1_vecs_fr_uni4.p", "wb"))
 	fr_vectors2bi = word_vectors(hp1_wordset_fr, hp1_text_fr, bimodal, 2)
-	pickle.dump(fr_vectors2bi, open("hp1_vecs_fr_bi2.p", "rb"))
+	pickle.dump(fr_vectors2bi, open("hp1_vecs_fr_bi2.p", "wb"))

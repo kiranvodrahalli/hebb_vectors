@@ -4,6 +4,8 @@ from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
 import procrustes
 import wordvec as wv
+from wordvec import sim
+from math import sqrt
 
 # first we get the set of word vectors to analyze.
 # we choose some top #words from the english text, and choose the
@@ -39,3 +41,28 @@ def top_k_words(lang, k):
 # DISTR = uniform, w = 2
 en_vecs_unif = pickle.load(open("hp1_vecs_en_unif2.p", "rb"))
 fr_vecs_unif = pickle.load(open("hp1_vecs_fr_unif2.p", "rb"))
+
+
+# returns a vector dictionary for the top k words of language lang
+def top_k_vec_dict(lang, k):
+
+# returns dictionary from English->French for the top k English words.
+# (this can include maps like harry -> harry, and other hogwarts specific things- google translate
+#  won't work for these)
+def top_k_translation(k):
+
+# returns a dictionary from each word-concept in the dict to its "language similarity score": a square sum of the 
+# differences between the dot product of the word to another word in english and the dot product in french, taken
+# over all other words in the dictionary. translation maps english word to french word.
+def lang_similarity_dict(vec_dict_en, vec_dict_fr, translation):
+	lang_sim_dict = dict()
+	for w in vec_dict.keys():
+		if w not in lang_sim_dict:
+			pos_dict[w] = sqrt(sum(pow((sim(vec_dict_en[w], vec_dict_en[w2]) - sim(vec_dict_fr[translation[w]], vec_dict_fr[translation[w2]])), 2) for w2 in vec_dict_en.keys() if w != w2))
+	return lang_sim_dict
+
+# takes in two vector dicts
+# vector dict is mapping from common set of words to vectors
+# in this case, "common set" is parametrized by an English->French translation function. 
+def compare_vector_sets(vec_dict_en, vec_dict_fr):
+
