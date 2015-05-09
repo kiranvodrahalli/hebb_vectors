@@ -17,30 +17,30 @@ def unif(w):
 # skewed left
 def skew_left(w):
 	v = np.ones(2*w + 1)
-	for i in range(0, len(v)):
-		v[i] = (1./i)*v[i]
+	for i in range(1, len(v) + 1):
+		v[i-1] = (1./i)*v[i-1]
 	return v/norm(v)
 # skewed right
 def skew_right(w):
 	v = np.ones(2*w + 1)
-	for i in range(0, len(v)):
-		v[i] = i*v[i]
+	for i in range(1, len(v) + 1):
+		v[i-1] = i*v[i-1]
 	return v/norm(v)
 # bimodal at ends -> THIS IS DEPENDENT ON W (distance how far away from center is important?)
 def bimodal(w):
 	v = np.ones(2*w + 1)
-	for i in range(0, len(v)/2 + 1):
-		v[i] = (1./i)*v[i]
-	for i in range(len(v)/2 + 1, len(v)):
-		v[i] = (i - len(v)/2)*v[i]
+	for i in range(1, len(v)/2 + 1 + 1):
+		v[i-1] = (1./i)*v[i-1]
+	for i in range(len(v)/2 + 1 + 1, len(v) + 1):
+		v[i-1] = (i - (1 + len(v)/2))*v[i-1]
 	return v/norm(v)
 # unimodal (basically hump in the middle)
 def unimodal(w):
 	v = np.ones(2*w + 1)
-	for i in range(0, len(v)/2 + 1):
-		v[i] = i*v[i]
-	for i in range(len(v)/2 + 1, len(v)):
-		v[i] = (1./(i - len(v)/2))*v[i]
+	for i in range(1, len(v)/2 + 1 + 1):
+		v[i-1] = i*v[i-1]
+	for i in range(len(v)/2 + 1 + 1, len(v) + 1):
+		v[i-1] = (1./(i - (1 + len(v)/2)))*v[i-1]
 	return v/norm(v)
 #--------------NONLINEARITIES--------------#
 def sigmoid(z):
