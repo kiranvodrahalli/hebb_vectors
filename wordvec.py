@@ -107,7 +107,7 @@ def test_fr():
 	return fr_vectors
 
 # english, uniform 3, 4, bimodal 2, 3, 4
-# should take 12 hours
+# should take 12 hours - THIS IS VISIONGPU
 def vectors_comp1():
 	hp1_wordset_en = pickle.load(open("hp1_wordset_en.p", "rb"))
 	hp1_text_en = pickle.load(open("hp1_text_en.p", "rb"))	
@@ -123,7 +123,7 @@ def vectors_comp1():
 	pickle.dump(en_vectors4bi, open("hp1_vecs_en_bi4.p", "rb"))
 
 # french, uniform 3, 4, bimodal 2, 3, 4
-# should take 12 hours
+# should take 12 hours - THIS IS THIS COMPUTER
 def vectors_comp2():
 	hp1_wordset_fr = pickle.load(open("hp1_wordset_fr.p", "rb"))
 	hp1_text_fr = pickle.load(open("hp1_text_fr.p", "rb"))	
@@ -139,7 +139,7 @@ def vectors_comp2():
 	pickle.dump(fr_vectors4bi, open("hp1_vecs_fr_bi4.p", "rb"))
 
 # english, unimodal 2, 3, 4
-# should take 12 hours
+# should take 12 hours - THIS IS NOBEL.PRINCETON.EDU
 def vectors_comp3():
 	hp1_wordset_en = pickle.load(open("hp1_wordset_en.p", "rb"))
 	hp1_text_en = pickle.load(open("hp1_text_en.p", "rb"))	
@@ -155,7 +155,7 @@ def vectors_comp3():
 	pickle.dump(en_vectors2bi, open("hp1_vecs_en_bi2.p", "rb"))
 
 # french, unimodal 2, 3, 4
-# should take 12 hours
+# should take 12 hours THIS IS OTHER LAPTOP
 def vectors_comp4():
 	hp1_wordset_fr = pickle.load(open("hp1_wordset_fr.p", "rb"))
 	hp1_text_fr = pickle.load(open("hp1_text_fr.p", "rb"))	
