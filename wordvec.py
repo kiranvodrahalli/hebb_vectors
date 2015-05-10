@@ -8,7 +8,9 @@ import math
 
 #--------------COMPARISON FUNCTION---------#
 def sim(v1, v2):
-	if norm(v1) or norm(v2) == 0.:
+	if norm(v1) < 0.000000000000001:
+		return 0.
+	if norm(v2) < 0.000000000000001:
 		return 0.
 	return np.dot(v1/norm(v1), v2/norm(v2))
 

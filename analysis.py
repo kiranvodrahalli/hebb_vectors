@@ -3,11 +3,22 @@ import numpy as np
 from numpy.linalg import norm
 from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
-import procrustes
+from procrustes import procrustes
 import wordvec as wv
 from wordvec import sim
 from math import sqrt
 import goog_translate as gt
+
+
+# don't forget, need to make a nice clean script that can work easily if all necessary python
+# things are installed. 
+
+# need to write instructions for use for said script. Also need to write python installation instructions.
+
+# need to write up paper. 
+
+
+
 
 # first we get the set of word vectors to analyze.
 # we choose some top #words from the english text, and choose the
@@ -91,14 +102,35 @@ fr_vecsets = [fr_vecs_unif2, fr_vecs_unif3, fr_vecs_unif4, fr_vecs_uni2, fr_vecs
 all_vecsets = en_vecsets + fr_vecsets
 
 translation_dict = pickle.load(open("translation_dict.p", "rb"))
+print "Translation dictionary length: " + str(len(translation_dict))
 
 eng_subset = set(translation_dict.keys())
 fr_subset = set(translation_dict.values())
 
 
+'''
+# invert dict
+for w in td:
+	if td[w] in fr_dup_set:
+		if td[w] not in fr_eng_dict:
+			fr_eng_dict[td[w]] = []
+		fr_eng_dict[td[w]].append(w)
+	else:
+		fr_eng_dict[td[w]] = [w]
+'''
+
+'''
+# bidirectional language dictionary"
+eng_fr_dict = dict()
+new_fr_eng_dict = dict()
+for f in fr_eng_dict: 
+	e = fr_eng_dict[f]
+	new_fr_eng_dict[f] = e[0]
+	eng_fr_dict[e[0]] = f
+'''
 
 
-# word_subset will be the top 2000 or so words we choose to analyze, 
+# word_subset will be the top 2000 or so words we choose to analyze, (1368) -> reduced to 1187
 # disregarding things like 'the' and 'and' and so on. 
 # save the english subset as a separate file
 # then produce the translations
@@ -107,8 +139,16 @@ fr_subset = set(translation_dict.values())
 
 # returns a subset of the vector dict
 # vecs is the vector dictionary to take the subset of
-# word_subset is a set of the words we want to use
-def vec_subdict(word_subset, vecs):
+# lang is the language we want to take subset over: en and fr only.
+def vec_subdict(lang, vecs):
+	word_subset = set()
+	if lang == "en":
+		word_subset = eng_subset
+	elif lang == "fr":
+		word_subset = fr_subset
+	else:
+		print lang + " is not supported.\n"
+		return None
 	new_dict = dict()
 	for w in word_subset:
 		if w not in new_dict:
@@ -122,13 +162,7 @@ def lang_similarity_dict(vec_dict_en, vec_dict_fr, translation):
 	lang_sim_dict = dict()
 	for w in vec_dict_en.keys():
 		if w not in lang_sim_dict:
-			vw = vec_dict_en[w]
-			vfw = vec_dict_fr[translation[w]]
-			'''
-			if norm(vw) == 0 or norm(vfw) == 0:
-				print w
-			'''
-			lang_sim_dict[w] = sqrt(sum(pow((sim(vw, vec_dict_en[w2]) - sim(vfw, vec_dict_fr[translation[w2]])), 2) for w2 in vec_dict_en.keys() if w != w2))
+			lang_sim_dict[w] = sqrt(sum(pow((sim(vec_dict_en[w], vec_dict_en[w2]) - sim(vec_dict_fr[translation[w]], vec_dict_fr[translation[w2]])), 2) for w2 in vec_dict_en.keys() if w != w2))
 	return lang_sim_dict
 
 # takes in a lang_sim_dict and converts sqrt(sum) -> sqrt(avg sq distance btwn cosine distances for each language)
@@ -158,16 +192,86 @@ def lang_similarity_score(vec_dict_en, vec_dict_fr, translation):
 def compare_vector_sets():
 	vec_pair_scores = dict()
 	for i in range(0, len(en_vecsets)):
-		en_vecs = vec_subdict(eng_subset, en_vecsets[i])
+		en_vecs = vec_subdict("en", en_vecsets[i])
+		print "# of English vectors: " + str(len(en_vecs))
 		for j in range(0, len(fr_vecsets)):
-			fr_vecs = vec_subdict(fr_subset, fr_vecsets[j])
+			fr_vecs = vec_subdict("fr", fr_vecsets[j])
+			print "# of French vectors: " + str(len(fr_vecs))
 			score = lang_similarity_score(en_vecs, fr_vecs, translation_dict)
 			vec_pair_scores[(en_vec_strs[i], fr_vec_strs[j])] = score
 	# small scores are better
-	return sorted(vec_pair_scores, key=vec_pair_scores.get, reverse=False)
+	return sorted(vec_pair_scores, key=vec_pair_scores.get, reverse=False), vec_pair_scores
+
+
+# each row is a word vector
+def build_mat_from_dict(vec_dict):
+	mat = None
+	first = True
+	for w in vec_dict:
+		if first == True:
+			mat = vec_dict[w]
+			first = False
+		else:
+			mat = np.c_[mat, vec_dict[w]]
+	return mat.T
+
+# calculate procrustes transform for two vector pairs
+# not that useful. can calculate difference between vectors before and after, decreases by a little.
+# not enough to say that there is a useful linear transformation between the two. may be better with more
+# data
+def closest_transform(vec_dict_en, vec_dict_fr, translation):
+	en_mat = build_mat_from_dict(vec_dict_en)
+	fr_mat = build_mat_from_dict(vec_dict_fr)
+	# Z is transformed fr_mat
+	# transform is a dict specifying the transformation
+	d, Z, transform = procrustes(en_mat, fr_mat)
+	print "Normalized SSE: " + str(d) + "\n"
+	return transform
 
 
 
+# CHECKING IF THERE IS A GOOD LINEAR TRANSFORMATION FOR ANY PAIR OF VECTOR SETS
+# for every pair of word vectors, first calculate the Frobenius distance
+# between the english vectors and the french vectors
+# then get the procrustes transform from english to french, and
+# calculate the Frobenius distance to the new matrix.  (Recall that Frobenius distance is basically Euclidean)
+def procrustes_vs_regular_distances():
+	vec_pair_procrustes_dist = dict()
+	for i in range(0, len(en_vecsets)):
+		en_vecs = vec_subdict("en", en_vecsets[i])
+		en_mat = build_mat_from_dict(en_vecs)
+		for j in range(0, len(fr_vecsets)):
+			fr_vecs = vec_subdict("fr", fr_vecsets[j])
+			fr_mat = build_mat_from_dict(fr_vecs)
+			# frobenius distance between matrices
+			original_dist = sqrt(pow(en_mat - fr_mat, 2).sum())
+			d, Z, t = procrustes(en_mat, fr_mat)
+			t_mat = np.dot(en_mat, t['rotation'])*t['scale'] + t['translation']
+			new_dist = sqrt(pow(t_mat - fr_mat, 2).sum())
+			vec_pair_procrustes_dist[(en_vec_strs[i], fr_vec_strs[j])] = (new_dist, original_dist)
+	return sorted(vec_pair_procrustes_dist, key = vec_pair_procrustes_dist.get, reverse=False), vec_pair_procrustes_dist
+
+
+# Now, we have two metrics for ordering the pairs of vectors by: 
+# 
+# (1) Distance between cosines across all word pairs (our Language Similarity Score - the samller the better.)
+# (2) The extent to which there is a linear mapping from the English vectors to the French vectors (Procrustes score)
+#     Note 1: The Procrustes Score is basically how much smaller the Frobenius distance between the vectors
+#           became after applying the optimal linear transformation. The smaller the better.
+#     Note 2: We could also sort by dist(org_eng, fr);
+#             also could sort by the difference (dist(org_eng, fr) - dist(procrustes_trans_eng, fr)).  
+#             Currently we're sorting by dist(procrustes_trans_eng, fr).
+
+# We can draw interesting conclusions about the language and the vectors based on which pairs were most
+# similar, for each of the two metrics. 
+
+
+# VISUAL REPRESENTATINOS
+# (1) we want to plot all the vector spaces first of all in 2D, using TSNE
+# (2) then we have these 18 vectors spaces each of dimension 2. We want to cluster these, 
+#     and display the clusters on top of the 2D TSNE plots. 
+# 
+# This will complete our visual representation of the vectors. 
 
 #------------- PLOTS ------------ #
 
