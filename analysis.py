@@ -67,14 +67,14 @@ fr_vecs_unif4 = pickle.load(open("hp1_vecs_fr_unif4.p", "rb"))
 
 # DISTR = unimodal
 en_vecs_uni2 = pickle.load(open("hp1_vecs_en_uni2.p", "rb"))
-#fr_vecs_uni2 = pickle.load(open("hp1_vecs_fr_uni2.p", "rb"))
+fr_vecs_uni2 = pickle.load(open("hp1_vecs_fr_uni2.p", "rb"))
 en_vecs_uni3 = pickle.load(open("hp1_vecs_en_uni3.p", "rb"))
-#fr_vecs_uni3 = pickle.load(open("hp1_vecs_fr_uni3.p", "rb"))
-#en_vecs_uni4 = pickle.load(open("hp1_vecs_en_uni4.p", "rb"))
+fr_vecs_uni3 = pickle.load(open("hp1_vecs_fr_uni3.p", "rb"))
+en_vecs_uni4 = pickle.load(open("hp1_vecs_en_uni4.p", "rb"))
 #fr_vecs_uni4 = pickle.load(open("hp1_vecs_fr_uni4.p", "rb"))
 
 # DISTR =  bimodal
-#en_vecs_bi2 = pickle.load(open("hp1_vecs_en_bi2.p", "rb"))
+en_vecs_bi2 = pickle.load(open("hp1_vecs_en_bi2.p", "rb"))
 #fr_vecs_bi2 = pickle.load(open("hp1_vecs_fr_bi2.p", "rb"))
 en_vecs_bi3 = pickle.load(open("hp1_vecs_en_bi3.p", "rb"))
 fr_vecs_bi3 = pickle.load(open("hp1_vecs_fr_bi3.p", "rb"))
