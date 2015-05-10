@@ -266,7 +266,7 @@ def procrustes_vs_regular_distances():
 # similar, for each of the two metrics. 
 
 
-# VISUAL REPRESENTATINOS
+# VISUAL REPRESENTATIONS
 # (1) we want to plot all the vector spaces first of all in 2D, using TSNE
 # (2) then we have these 18 vectors spaces each of dimension 2. We want to cluster these, 
 #     and display the clusters on top of the 2D TSNE plots. 
@@ -276,6 +276,38 @@ def procrustes_vs_regular_distances():
 #------------- PLOTS ------------ #
 
 # TSNE plotting of each set of vectors
+# lang = 'en' or 'fr'
+def tsne(lang, vec_dict):
+	vecs = vec_subdict(lang, vec_dict)
+	mat = build_mat_from_dict(vecs)
+	model = TSNE(n_components=2, random_state=0)
+	t_mat = model.fit_transform(mat)
+	t_vecs = dict()
+	for i in range(len(vecs.keys())):
+		w = vecs.keys()[i]
+		if w not in t_vecs:
+			t_vecs[w] = t_mat[i]
+	return t_vecs, t_mat
+
+# build TSNE mappings for all vector sets:
+# (keep in mind these are the SUBSETS OF THE VECTORS THAT WE HAVE BEEN ANALYZING)
+def tsne_transform():
+	tsne_en_vecsets = []
+	for i in range(0, len(en_vecsets)):
+		en_vecs = vec_subdict("en", en_vecsets[i])
+		t_vecs, t_mat = tsne('en', en_vecs)
+		tsne_en_vecsets.append(t_vecs)
+	tsne_fr_vecsets = []
+	for j in range(0, len(fr_vecsets)):
+		fr_vecs = vec_subdict("fr", fr_vecsets[j])
+		t_vecs, t_mat = tsne('fr', fr_vecs)
+		tsne_fr_vecsets.append(t_vecs)
+	return tsne_en_vecsets, tsne_fr_vecsets
+
+
+# NOTE THAT THESE ALSO FOLLOW THE SAME ORDER AS en_vec_strs AND fr_vec_strs
+tsne_en_vecsets, tsne_fr_vecsets = tsne_transform()
+
 
 # Cluster plots (of TSNE reduced vectors)
 
