@@ -6,6 +6,7 @@ import procrustes
 import wordvec as wv
 from wordvec import sim
 from math import sqrt
+import goog_translate as gt
 
 # first we get the set of word vectors to analyze.
 # we choose some top #words from the english text, and choose the
@@ -38,13 +39,31 @@ def top_k_words(lang, k):
 		return None
 
 
+# for a given wordset, get the english translation
+# otherwise make hand translation list
+def get_translations(eng_wordset):
+	hp1_fr_words = pickle.load(open("hp1_wordset_fr.p", "rb"))
+	fr_wordset = set()
+	translation_pairs = []
+	to_hand_translate = []
+	for w in eng_wordset:
+		t = gt.translate(w, "fr", "en").lower()
+		if t in hp1_fr_words:
+			print (w, t)
+			translation_pairs.append((w, t))
+			fr_wordset.add(t)
+		else:
+			to_hand_translate.append(w)
+	return fr_wordset, translation_pairs, to_hand_translate
+
+
 # DISTR = uniform
 en_vecs_unif2 = pickle.load(open("hp1_vecs_en_unif2.p", "rb"))
 fr_vecs_unif2 = pickle.load(open("hp1_vecs_fr_unif2.p", "rb"))
 en_vecs_unif3 = pickle.load(open("hp1_vecs_en_unif3.p", "rb"))
-#fr_vecs_unif3 = pickle.load(open("hp1_vecs_fr_unif3.p", "rb"))
+fr_vecs_unif3 = pickle.load(open("hp1_vecs_fr_unif3.p", "rb"))
 en_vecs_unif4 = pickle.load(open("hp1_vecs_en_unif4.p", "rb"))
-#fr_vecs_unif4 = pickle.load(open("hp1_vecs_fr_unif4.p", "rb"))
+fr_vecs_unif4 = pickle.load(open("hp1_vecs_fr_unif4.p", "rb"))
 
 # DISTR = unimodal
 en_vecs_uni2 = pickle.load(open("hp1_vecs_en_uni2.p", "rb"))
@@ -58,9 +77,9 @@ en_vecs_uni3 = pickle.load(open("hp1_vecs_en_uni3.p", "rb"))
 #en_vecs_bi2 = pickle.load(open("hp1_vecs_en_bi2.p", "rb"))
 #fr_vecs_bi2 = pickle.load(open("hp1_vecs_fr_bi2.p", "rb"))
 en_vecs_bi3 = pickle.load(open("hp1_vecs_en_bi3.p", "rb"))
-#fr_vecs_bi3 = pickle.load(open("hp1_vecs_fr_bi3.p", "rb"))
+fr_vecs_bi3 = pickle.load(open("hp1_vecs_fr_bi3.p", "rb"))
 en_vecs_bi4 = pickle.load(open("hp1_vecs_en_bi4.p", "rb"))
-#fr_vecs_bi4 = pickle.load(open("hp1_vecs_fr_bi4.p", "rb"))
+fr_vecs_bi4 = pickle.load(open("hp1_vecs_fr_bi4.p", "rb"))
 
 
 # word_subset will be the top 2000 or so words we choose to analyze, 
@@ -84,7 +103,7 @@ def vec_subdict(word_subset, vecs):
 # (this can include maps like harry -> harry, and other hogwarts specific things- google translate
 #  won't work for these)
 def top_k_translation(word_subset):
-
+	print 'not implemented'
 # returns a dictionary from each word-concept in the dict to its "language similarity score": a square sum of the 
 # differences between the dot product of the word to another word in english and the dot product in french, taken
 # over all other words in the dictionary. translation maps english word to french word.
@@ -99,4 +118,4 @@ def lang_similarity_dict(vec_dict_en, vec_dict_fr, translation):
 # vector dict is mapping from common set of words to vectors
 # in this case, "common set" is parametrized by an English->French translation function. 
 def compare_vector_sets(vec_dict_en, vec_dict_fr):
-
+	print 'not implemented'
