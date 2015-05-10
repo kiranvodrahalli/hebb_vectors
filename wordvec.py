@@ -8,6 +8,8 @@ import math
 
 #--------------COMPARISON FUNCTION---------#
 def sim(v1, v2):
+	if norm(v1) or norm(v2) == 0.:
+		return 0.
 	return np.dot(v1/norm(v1), v2/norm(v2))
 
 #--------------DISTRIBUTIONS---------------#

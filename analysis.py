@@ -1,5 +1,6 @@
 import pickle
 import numpy as np
+from numpy.linalg import norm
 from sklearn.manifold import TSNE
 from sklearn.cluster import KMeans
 import procrustes
@@ -71,15 +72,30 @@ fr_vecs_uni2 = pickle.load(open("hp1_vecs_fr_uni2.p", "rb"))
 en_vecs_uni3 = pickle.load(open("hp1_vecs_en_uni3.p", "rb"))
 fr_vecs_uni3 = pickle.load(open("hp1_vecs_fr_uni3.p", "rb"))
 en_vecs_uni4 = pickle.load(open("hp1_vecs_en_uni4.p", "rb"))
-#fr_vecs_uni4 = pickle.load(open("hp1_vecs_fr_uni4.p", "rb"))
+fr_vecs_uni4 = pickle.load(open("hp1_vecs_fr_uni4.p", "rb"))
 
 # DISTR =  bimodal
 en_vecs_bi2 = pickle.load(open("hp1_vecs_en_bi2.p", "rb"))
-#fr_vecs_bi2 = pickle.load(open("hp1_vecs_fr_bi2.p", "rb"))
+fr_vecs_bi2 = pickle.load(open("hp1_vecs_fr_bi2.p", "rb"))
 en_vecs_bi3 = pickle.load(open("hp1_vecs_en_bi3.p", "rb"))
 fr_vecs_bi3 = pickle.load(open("hp1_vecs_fr_bi3.p", "rb"))
 en_vecs_bi4 = pickle.load(open("hp1_vecs_en_bi4.p", "rb"))
 fr_vecs_bi4 = pickle.load(open("hp1_vecs_fr_bi4.p", "rb"))
+
+en_vec_strs = ["en_unif2", "en_unif3", "en_unif4", "en_uni2", "en_uni3", "en_uni4", "en_bi2", "en_bi3", "en_bi4"]
+fr_vec_strs = ["fr_unif2", "fr_unif3", "fr_unif4", "fr_uni2", "fr_uni3", "fr_uni4", "fr_bi2", "fr_bi3", "fr_bi4"]
+all_vecstrs = en_vec_strs + fr_vec_strs
+
+en_vecsets = [en_vecs_unif2, en_vecs_unif3, en_vecs_unif4, en_vecs_uni2, en_vecs_uni3, en_vecs_uni4, en_vecs_bi2, en_vecs_bi3, en_vecs_bi4]
+fr_vecsets = [fr_vecs_unif2, fr_vecs_unif3, fr_vecs_unif4, fr_vecs_uni2, fr_vecs_uni3, fr_vecs_uni4, fr_vecs_bi2, fr_vecs_bi3, fr_vecs_bi4]
+all_vecsets = en_vecsets + fr_vecsets
+
+translation_dict = pickle.load(open("translation_dict.p", "rb"))
+
+eng_subset = set(translation_dict.keys())
+fr_subset = set(translation_dict.values())
+
+
 
 
 # word_subset will be the top 2000 or so words we choose to analyze, 
@@ -99,23 +115,63 @@ def vec_subdict(word_subset, vecs):
 			new_dict[w] = vecs[w]
 	return new_dict
 
-# returns dictionary from English->French for the subset of English words.
-# (this can include maps like harry -> harry, and other hogwarts specific things- google translate
-#  won't work for these)
-def top_k_translation(word_subset):
-	print 'not implemented'
 # returns a dictionary from each word-concept in the dict to its "language similarity score": a square sum of the 
 # differences between the dot product of the word to another word in english and the dot product in french, taken
 # over all other words in the dictionary. translation maps english word to french word.
 def lang_similarity_dict(vec_dict_en, vec_dict_fr, translation):
 	lang_sim_dict = dict()
-	for w in vec_dict.keys():
+	for w in vec_dict_en.keys():
 		if w not in lang_sim_dict:
-			pos_dict[w] = sqrt(sum(pow((sim(vec_dict_en[w], vec_dict_en[w2]) - sim(vec_dict_fr[translation[w]], vec_dict_fr[translation[w2]])), 2) for w2 in vec_dict_en.keys() if w != w2))
+			vw = vec_dict_en[w]
+			vfw = vec_dict_fr[translation[w]]
+			'''
+			if norm(vw) == 0 or norm(vfw) == 0:
+				print w
+			'''
+			lang_sim_dict[w] = sqrt(sum(pow((sim(vw, vec_dict_en[w2]) - sim(vfw, vec_dict_fr[translation[w2]])), 2) for w2 in vec_dict_en.keys() if w != w2))
 	return lang_sim_dict
 
-# takes in two vector dicts
-# vector dict is mapping from common set of words to vectors
-# in this case, "common set" is parametrized by an English->French translation function. 
-def compare_vector_sets(vec_dict_en, vec_dict_fr):
-	print 'not implemented'
+# takes in a lang_sim_dict and converts sqrt(sum) -> sqrt(avg sq distance btwn cosine distances for each language)
+# this way you can tell what the average distance between the two cosines is! take arccos to find 
+# difference in angle; recall that this is 100-dim space!! - this is more for explaining.
+def lang_avg_sim_dict(lang_sim_dict):
+	avg_sim_dict = dict()
+	size = len(lang_sim_dict) - 1
+	for w in lang_sim_dict.keys():
+		if w not in avg_sim_dict:
+			avg_sim_dict[w] = sqrt(pow(lang_sim_dict[w], 2)/(size + 0.))
+	return avg_sim_dict
+
+# similarity between an english vector set and a french vector set
+# we want to find minimal lang similarity score for two vector sets -> these word vector encodings
+# are closest across language. we see which ones these are, and infer what this tells us about the languages.
+# we also argue that they better represent some structure in the language. 
+def lang_similarity_score(vec_dict_en, vec_dict_fr, translation):
+	lang_sim_dict = lang_similarity_dict(vec_dict_en, vec_dict_fr, translation)
+	total_score = 0
+	for w in vec_dict_en.keys():
+		total_score += lang_sim_dict[w]
+	return total_score/(len(vec_dict_en.keys()) + 0.)
+
+
+# compare distances between all possible pairs of english-french wordvec sets. 
+def compare_vector_sets():
+	vec_pair_scores = dict()
+	for i in range(0, len(en_vecsets)):
+		en_vecs = vec_subdict(eng_subset, en_vecsets[i])
+		for j in range(0, len(fr_vecsets)):
+			fr_vecs = vec_subdict(fr_subset, fr_vecsets[j])
+			score = lang_similarity_score(en_vecs, fr_vecs, translation_dict)
+			vec_pair_scores[(en_vec_strs[i], fr_vec_strs[j])] = score
+	# small scores are better
+	return sorted(vec_pair_scores, key=vec_pair_scores.get, reverse=False)
+
+
+
+
+#------------- PLOTS ------------ #
+
+# TSNE plotting of each set of vectors
+
+# Cluster plots (of TSNE reduced vectors)
+
