@@ -1,5 +1,7 @@
 import numpy as np
 
+# taken from http://stackoverflow.com/questions/18925181/procrustes-analysis-with-numpy
+
 def procrustes(X, Y, scaling=True, reflection='best'):
     """
     A port of MATLAB's `procrustes` function to Numpy.
