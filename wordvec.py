@@ -57,15 +57,15 @@ def tanh(z):
 
 #-------------PYTHON FUNCTIONS-------------#
 
-# w is the radius of the word window
+# r is the radius of the word window
 # returns a dictionary from words to their vectors
 # we set a hard hidden layer size of 100, learning rate of 0.1, and competitive k = 10. 
 # we use sigmoid function for the nonlinearity
-def word_vectors(wordset, text, dist_func, w):
-	skew_distr = dist_func(w) #for example, unif(2)
+def word_vectors(wordset, text, dist_func, r):
+	skew_distr = dist_func(r) #for example, unif(2)
 	net = nn.hebb_net(vocab=wordset, H=100, nonlinearity=sigmoid, lrate=0.1, K=10, distr=skew_distr)
 	print("Training...\n")
-	net.train(text, w)
+	net.train(text, r)
 	print("Training complete.\n")
 	weight_matrix = net.W.T
 	vectors = dict()
@@ -80,19 +80,19 @@ def word_vectors(wordset, text, dist_func, w):
 # we will restrict our analysis to the top most common words: maybe top 100 interesting
 # vectors (that are translation pairs), including names of characters! 
 
-# possibly, avoid experimenting with w size cause not enough time. make mention of possibility though. 
+# possibly, avoid experimenting with r size cause not enough time. make mention of possibility though. 
 
-# we probably should try for w = 2 -> w = 4....
+# we probably should try for r = 2 -> r = 4....
 # we have 5 different types of distributions
 # most interesting are uniform, bimodal, unimodal: reduce to just these 3. 
-# therefore, 3 distributions, 2 languages, w = 2, 3, 4: 18 total. 
+# therefore, 3 distributions, 2 languages, r = 2, 3, 4: 18 total. 
 # we can run maybe 4 at a time. 4 takes 3 hours at most. 
 # this means a max total of 12 hours of training time. need to get another computer to help run this. 
 # REQUIREMENTS: numpy up to date, scikit-learn up to date, pickle, my own code: progressbar
 # automate all the tests/ plots and there will be enough time to write everything up. 
 
 
-# uniform vectors for English (w = 2)
+# uniform vectors for English (r = 2)
 def test_en():
 	hp1_wordset_en = pickle.load(open("hp1_wordset_en.p", "rb"))
 	hp1_text_en = pickle.load(open("hp1_text_en.p", "rb"))	
@@ -101,7 +101,7 @@ def test_en():
 	en_vectors = word_vectors(hp1_wordset_en, hp1_text_en, unif, 2)
 	return en_vectors
 
-# uniform vectors for French (w = 2)
+# uniform vectors for French (r = 2)
 def test_fr():
 	hp1_wordset_fr = pickle.load(open("hp1_wordset_fr.p", "rb"))
 	hp1_text_fr = pickle.load(open("hp1_text_fr.p", "rb"))
