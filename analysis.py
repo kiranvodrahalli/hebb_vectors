@@ -2,12 +2,14 @@ import pickle
 import numpy as np
 from numpy.linalg import norm
 from sklearn.manifold import TSNE
-from sklearn.cluster import KMeans
+from sklearn.neighbors import NearestNeighbors
 from procrustes import procrustes
 import wordvec as wv
 from wordvec import sim
 from math import sqrt
 import goog_translate as gt
+import matplotlib.pyplot as plt
+from saving import save
 
 
 # don't forget, need to make a nice clean script that can work easily if all necessary python
@@ -215,41 +217,72 @@ def build_mat_from_dict(vec_dict):
 			mat = np.c_[mat, vec_dict[w]]
 	return mat.T
 
+def build_parallel_mats_from_dicts(en_vecs, fr_vecs, en_fr):
+	mat_en = None
+	mat_fr = None
+	en_vec_dict = vec_subdict("en", en_vecs)
+	fr_vec_dict = vec_subdict("fr", fr_vecs)
+	first = True
+	index_map = dict()
+	index = 0
+	for w in en_vec_dict:
+		if first == True:
+			mat_en = en_vec_dict[w]
+			mat_fr = fr_vec_dict[en_fr[w]]
+			first = False
+		else:
+			mat_en = np.c_[mat_en, en_vec_dict[w]]
+			mat_fr = np.c_[mat_fr, fr_vec_dict[en_fr[w]]]
+		index_map[index] = (w, en_fr[w])
+		index += 1
+	return mat_en.T, mat_fr.T, index_map
+
+
 # calculate procrustes transform for two vector pairs
 # not that useful. can calculate difference between vectors before and after, decreases by a little.
 # not enough to say that there is a useful linear transformation between the two. may be better with more
 # data
 def closest_transform(vec_dict_en, vec_dict_fr, translation):
-	en_mat = build_mat_from_dict(vec_dict_en)
-	fr_mat = build_mat_from_dict(vec_dict_fr)
+	en_mat, fr_mat, index_map = build_parallel_mats_from_dicts(vec_dict_en, vec_dict_fr, translation)
 	# Z is transformed fr_mat
 	# transform is a dict specifying the transformation
 	d, Z, transform = procrustes(en_mat, fr_mat)
 	print "Normalized SSE: " + str(d) + "\n"
 	return transform
-
-
+'''
+plt.xlabel("Semantic Vector Set Pairs Sorted by Procrustes' Ratio")
+plt.ylabel("Procrustes' Distance and Ratio")
+ratio_plot, = plt.plot(sorted(procrust_ratio, reverse=True), label="Procrustes' Ratio")
+dist_plot, = plt.plot(procrust_dist, label="Procrustes' Distance")
+plt.legend(handles=[ratio_plot, dist_plot], loc=2)
+'''
 
 # CHECKING IF THERE IS A GOOD LINEAR TRANSFORMATION FOR ANY PAIR OF VECTOR SETS
 # for every pair of word vectors, first calculate the Frobenius distance
 # between the english vectors and the french vectors
 # then get the procrustes transform from english to french, and
 # calculate the Frobenius distance to the new matrix.  (Recall that Frobenius distance is basically Euclidean)
+# output is the ordered semantic vector set pairs from best to worst, and a dictionary
+# mapping each pair to (procrustes distance, ratio of old dist/procrustes distance)
+# (ideally, first value is small, second value is high)
 def procrustes_vs_regular_distances():
 	vec_pair_procrustes_dist = dict()
+	vec_pair_procrustes_ratio = dict()
 	for i in range(0, len(en_vecsets)):
-		en_vecs = vec_subdict("en", en_vecsets[i])
-		en_mat = build_mat_from_dict(en_vecs)
+		#en_vecs = vec_subdict("en", en_vecsets[i])
+		#en_mat = build_mat_from_dict(en_vecs)
 		for j in range(0, len(fr_vecsets)):
-			fr_vecs = vec_subdict("fr", fr_vecsets[j])
-			fr_mat = build_mat_from_dict(fr_vecs)
+			#fr_vecs = vec_subdict("fr", fr_vecsets[j])
+			#fr_mat = build_mat_from_dict(fr_vecs)
+			en_mat, fr_mat, index_map = build_parallel_mats_from_dicts(en_vecsets[i], fr_vecsets[j], translation_dict)
 			# frobenius distance between matrices
 			original_dist = sqrt(pow(en_mat - fr_mat, 2).sum())
 			d, Z, t = procrustes(en_mat, fr_mat)
 			t_mat = np.dot(en_mat, t['rotation'])*t['scale'] + t['translation']
 			new_dist = sqrt(pow(t_mat - fr_mat, 2).sum())
-			vec_pair_procrustes_dist[(en_vec_strs[i], fr_vec_strs[j])] = (new_dist, original_dist)
-	return sorted(vec_pair_procrustes_dist, key = vec_pair_procrustes_dist.get, reverse=False), vec_pair_procrustes_dist
+			vec_pair_procrustes_dist[(en_vec_strs[i], fr_vec_strs[j])] = new_dist
+			vec_pair_procrustes_ratio[(en_vec_strs[i], fr_vec_strs[j])] = original_dist/new_dist
+	return sorted(vec_pair_procrustes_dist, key = vec_pair_procrustes_dist.get, reverse=False), vec_pair_procrustes_dist, sorted(vec_pair_procrustes_ratio, key = vec_pair_procrustes_ratio.get, reverse=True), vec_pair_procrustes_ratio
 
 
 # Now, we have two metrics for ordering the pairs of vectors by: 
@@ -265,6 +298,51 @@ def procrustes_vs_regular_distances():
 # We can draw interesting conclusions about the language and the vectors based on which pairs were most
 # similar, for each of the two metrics. 
 
+# k-nearest-neighbors metric 
+# we find the words associated with the k closest vectors to the semantic vector associated with each word
+# for both languages. we treat English as ground truth, and French as to-check. 
+# we then calculate precision and recall for each word. 
+# we will really have two metrics then: k-precision and k-recall. 
+def k_nearest_neighbors_scores(k, eng_vec_dict, fr_vec_dict):
+	eng_mat, fr_mat, index_map = build_parallel_mats_from_dicts(eng_vec_dict, fr_vec_dict, translation_dict)
+	# k + 1 since we discard the top neighbor, which is itself
+	neighbors_en = NearestNeighbors(n_neighbors=k+1, algorithm='ball_tree').fit(eng_mat)
+	dist_en, indices_en = neighbors_en.kneighbors(eng_mat)
+	neighbors_fr = NearestNeighbors(n_neighbors=k+1, algorithm='ball_tree').fit(fr_mat)
+	dist_fr, indices_fr = neighbors_fr.kneighbors(fr_mat)
+	# since we built the matrices in parallel, we know now that indices map to each other,
+	# so we simply check the overlap of those to calculate precision and recall. 
+	# calculate avg recall for k-recall
+	avg_recall = 0.
+	num_points = len(indices_en) + 0.
+	knearest_map_en = dict()
+	knearest_map_fr = dict()
+	for i in range(0, int(num_points)):
+		w_en = index_map[i][0]
+		w_fr = index_map[i][1]
+		index_set_en = set(indices_en[i][1:]) # should be size k
+		index_set_fr = set(indices_fr[i][1:]) # should be size k
+		if w_en not in knearest_map_en:
+			knearest_map_en[w_en] = map(lambda z: index_map[z], index_set_en)
+		if w_fr not in knearest_map_fr:
+			knearest_map_fr[w_fr] = map(lambda z: index_map[z], index_set_fr)
+		recall_count = sum(1 for i in index_set_fr if i in index_set_en)
+		# precision = recall for this task
+		recall = (recall_count + 0.)/len(index_set_en)
+		avg_recall += recall
+	return (avg_recall/num_points), knearest_map_en, knearest_map_fr
+
+# we will use k = 10
+def all_knearest(k):
+	pair_recall_knearest_dict = dict()
+	for i in range(0, len(en_vecsets)):
+		for j in range(0, len(fr_vecsets)):
+			pair_name = (en_vec_strs[i], fr_vec_strs[j])
+			if pair_name not in pair_recall_knearest_dict:
+				pair_recall_knearest_dict[pair_name] = k_nearest_neighbors_scores(k, en_vecsets[i], fr_vecsets[j])
+	return pair_recall_knearest_dict
+
+#pair_recall_knearest_dict = all_knearest(10)
 
 # VISUAL REPRESENTATIONS
 # (1) we want to plot all the vector spaces first of all in 2D, using TSNE
@@ -306,8 +384,29 @@ def tsne_transform():
 
 
 # NOTE THAT THESE ALSO FOLLOW THE SAME ORDER AS en_vec_strs AND fr_vec_strs
-tsne_en_vecsets, tsne_fr_vecsets = tsne_transform()
+#tsne_en_vecsets, tsne_fr_vecsets = tsne_transform()
+tsne_en_vecsets = pickle.load(open("tsne_en_vecsets.p", "rb"))
+tsne_fr_vecsets = pickle.load(open("tsne_fr_vecsets.p", "rb"))
+
+# first plot TSNE vectors
+def plot_tsne(vec_dict, name):
+	vecs = vec_dict.values()
+	x = [v[0] for v in vecs]
+	y = [v[1] for v in vecs]
+	plt.scatter(x, y)
+	save("/Users/kiranv/college/3junior-year/spring2015/neu330/final_project/paper/figures/" + name, ext='jpg')
+	plt.show()
 
 
-# Cluster plots (of TSNE reduced vectors)
+def make_tsne_plots():
+	for i in range(len(tsne_en_vecsets)):
+		vecset = tsne_en_vecsets[i]
+		name = en_vec_strs[i]
+		plot_tsne(vecset,  name)
+	for i in range(len(tsne_fr_vecsets)):
+		vecset = tsne_fr_vecsets[i]
+		name = fr_vec_strs[i]
+		plot_tsne(vecset,  name)
+
+# then cluster plots (of TSNE reduced vectors)
 
