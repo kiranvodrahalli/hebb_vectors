@@ -12,13 +12,6 @@ import matplotlib.pyplot as plt
 from saving import save
 
 
-# don't forget, need to make a nice clean script that can work easily if all necessary python
-# things are installed. 
-
-# need to write instructions for use for said script. Also need to write python installation instructions.
-
-# need to write up paper. 
-
 
 
 
@@ -108,28 +101,6 @@ print "Translation dictionary length: " + str(len(translation_dict))
 
 eng_subset = set(translation_dict.keys())
 fr_subset = set(translation_dict.values())
-
-
-'''
-# invert dict
-for w in td:
-	if td[w] in fr_dup_set:
-		if td[w] not in fr_eng_dict:
-			fr_eng_dict[td[w]] = []
-		fr_eng_dict[td[w]].append(w)
-	else:
-		fr_eng_dict[td[w]] = [w]
-'''
-
-'''
-# bidirectional language dictionary"
-eng_fr_dict = dict()
-new_fr_eng_dict = dict()
-for f in fr_eng_dict: 
-	e = fr_eng_dict[f]
-	new_fr_eng_dict[f] = e[0]
-	eng_fr_dict[e[0]] = f
-'''
 
 
 # word_subset will be the top 2000 or so words we choose to analyze, (1368) -> reduced to 1187
@@ -249,13 +220,7 @@ def closest_transform(vec_dict_en, vec_dict_fr, translation):
 	d, Z, transform = procrustes(en_mat, fr_mat)
 	print "Normalized SSE: " + str(d) + "\n"
 	return transform
-'''
-plt.xlabel("Semantic Vector Set Pairs Sorted by Procrustes' Ratio")
-plt.ylabel("Procrustes' Distance and Ratio")
-ratio_plot, = plt.plot(sorted(procrust_ratio, reverse=True), label="Procrustes' Ratio")
-dist_plot, = plt.plot(procrust_dist, label="Procrustes' Distance")
-plt.legend(handles=[ratio_plot, dist_plot], loc=2)
-'''
+
 
 # CHECKING IF THERE IS A GOOD LINEAR TRANSFORMATION FOR ANY PAIR OF VECTOR SETS
 # for every pair of word vectors, first calculate the Frobenius distance
@@ -408,5 +373,36 @@ def make_tsne_plots():
 		name = fr_vec_strs[i]
 		plot_tsne(vecset,  name)
 
-# then cluster plots (of TSNE reduced vectors)
+
+
+
+'''
+# IGNORE
+# invert dict
+for w in td:
+	if td[w] in fr_dup_set:
+		if td[w] not in fr_eng_dict:
+			fr_eng_dict[td[w]] = []
+		fr_eng_dict[td[w]].append(w)
+	else:
+		fr_eng_dict[td[w]] = [w]
+'''
+
+'''
+# bidirectional language dictionary"
+eng_fr_dict = dict()
+new_fr_eng_dict = dict()
+for f in fr_eng_dict: 
+	e = fr_eng_dict[f]
+	new_fr_eng_dict[f] = e[0]
+	eng_fr_dict[e[0]] = f
+'''
+'''
+# IGNORE
+plt.xlabel("Semantic Vector Set Pairs Sorted by Procrustes' Ratio")
+plt.ylabel("Procrustes' Distance and Ratio")
+ratio_plot, = plt.plot(sorted(procrust_ratio, reverse=True), label="Procrustes' Ratio")
+dist_plot, = plt.plot(procrust_dist, label="Procrustes' Distance")
+plt.legend(handles=[ratio_plot, dist_plot], loc=2)
+'''
 
